@@ -1,6 +1,5 @@
 //paquetes o dependencias
 var gulp = require('gulp');
-var sass = require('gulp-sass');
 var autoprefixer = require('gulp-autoprefixer');
 var sourcemaps = require('gulp-sourcemaps');
 var browserSync = require('browser-sync');
@@ -12,8 +11,9 @@ var imagemin = require('gulp-imagemin');
 var cache = require('gulp-cache');
 var del = require('del');
 var runSequence = require('run-sequence');
-
-
+var less = require('gulp-less');
+var path = require('path');
+ 
 // Basic Gulp task syntax
 gulp.task('hello', function() {
   console.log('Hello soy Sheila!');
@@ -31,18 +31,20 @@ gulp.task('browserSync', function() {
   })
 })
 
-gulp.task('sass', function() {
-  return gulp.src('app/scss/**/*.scss')
-    .pipe(sass().on('error', sass.logError)) // Passes it through a gulp-sass, log errors to console
-    .pipe(gulp.dest('app/css')) // Outputs it in the css folder
-    .pipe(browserSync.reload({ // Reloading with Browser Sync
+gulp.task('less', function () {
+  return gulp.src('app/less/**/*.less')
+    .pipe(less({
+      paths: [ path.join(__dirname, 'less', 'includes') ]
+    }))
+    .pipe(gulp.dest('app/css'))
+    .pipe(browserSync.reload({
       stream: true
     }));
-})
+});
 
 // Watchers
 gulp.task('watch', function() {
-  gulp.watch('app/scss/**/*.scss', ['sass']);
+  gulp.watch('app/less/**/*.less', ['less']);
   gulp.watch('app/*.html', browserSync.reload);
   gulp.watch('app/js/**/*.js', browserSync.reload);
 })
@@ -91,7 +93,7 @@ gulp.task('clean:dist', function() {
 // ---------------
 
 gulp.task('default', function(callback) {
-  runSequence(['sass', 'browserSync'], 'watch',
+  runSequence(['less', 'browserSync'], 'watch',
     callback
   )
 })
@@ -99,7 +101,7 @@ gulp.task('default', function(callback) {
 gulp.task('build', function(callback) {
   runSequence(
     'clean:dist',
-    'sass',
+    'less',
     ['optimize', 'images', 'fonts'],
     callback
   )
